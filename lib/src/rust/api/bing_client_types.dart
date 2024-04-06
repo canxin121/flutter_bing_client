@@ -6,6 +6,41 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+class DisplayConfig {
+  final bool state;
+  final String rootPath;
+  final String cookie;
+  final int chatListLen;
+  final int stopSignalLen;
+
+  const DisplayConfig({
+    required this.state,
+    required this.rootPath,
+    required this.cookie,
+    required this.chatListLen,
+    required this.stopSignalLen,
+  });
+
+  @override
+  int get hashCode =>
+      state.hashCode ^
+      rootPath.hashCode ^
+      cookie.hashCode ^
+      chatListLen.hashCode ^
+      stopSignalLen.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DisplayConfig &&
+          runtimeType == other.runtimeType &&
+          state == other.state &&
+          rootPath == other.rootPath &&
+          cookie == other.cookie &&
+          chatListLen == other.chatListLen &&
+          stopSignalLen == other.stopSignalLen;
+}
+
 class WrappedChat {
   final String conversationId;
   String chatName;

@@ -1,0 +1,136 @@
+name: "BUILD"
+on: workflow_dispatch
+
+jobs:
+  build_ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+          
+      - run: flutter pub get
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build ios
+        run: |
+          flutter build ios --release --no-codesign --verbose
+
+          chmod 777 unbitcode.sh
+          sh unbitcode.sh
+          
+          mkdir -p Payload
+          mv ./build/ios/iphoneos/Runner.app Payload
+          zip -r -y Payload.zip Payload/Runner.app
+          mv Payload.zip app.ipa
+          
+      - name: Upload IPA
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_ios
+          path: app.ipa
+  
+  build_android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+          
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      
+      - run: flutter pub get
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: |
+          flutter clean
+          flutter build apk --release --split-per-abi --verbose
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_android
+          path: build/app/outputs/apk/release
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+          
+      - run: flutter pub get
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: flutter build windows --release --verbose
+
+      - name: Upload files
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_windows
+          path: build\windows\x64\runner\Release
+
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+          
+      - run: flutter pub get
+      - run: sudo apt install libwebkit2gtk-4.1-dev
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - run: flutter build linux --release --verbose
+
+      - name: Upload files
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_linux
+          path: build/linux/x64/release
+          
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'beta'
+      
+      - run: flutter pub get
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: flutter build macos --release --verbose
+      
+      - name: Upload files
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_macos
+          path: build/macos/Build/Products/Release

@@ -14,7 +14,7 @@ use tokio::{
 use tracing::{error, info};
 
 use super::{
-    bing_client_types::{WrappedChat, WrappedMsg},
+    bing_client_types::{DisplayConfig, WrappedChat, WrappedMsg},
     utils::gen_time_local,
 };
 
@@ -26,15 +26,29 @@ lazy_static! {
 }
 
 #[flutter_rust_bridge::frb]
-pub async fn display_global_state() {
-    let bing_client = BING_CLIENT.read().await;
-    info!("BING_CLIENT: {:?}", *bing_client);
-    info!("CHAT_LIST len: {}", CHAT_LIST.len());
-
-    let root_path = ROOT_PATH.read().await;
-    info!("ROOT_PATH: {:?}", *root_path);
-
-    info!("STOP_SIGNALS len: {}", STOP_SIGNALS.len());
+pub async fn display_global_state() -> DisplayConfig {
+    let (state, cookie) = {
+        let bing_client = BING_CLIENT.read().await;
+        if bing_client.is_some() {
+            let bing_client = bing_client.as_ref().unwrap();
+            (true, bing_client.cookie_str.clone())
+        } else {
+            (false, "客户端未初始化".to_string())
+        }
+    };
+    let chat_list_len = CHAT_LIST.len() as u32;
+    let stop_signal_len = STOP_SIGNALS.len() as u32;
+    let root_path = {
+        let root_path = ROOT_PATH.read().await;
+        root_path.clone()
+    };
+    DisplayConfig {
+        state,
+        root_path,
+        cookie,
+        chat_list_len,
+        stop_signal_len,
+    }
 }
 
 #[flutter_rust_bridge::frb]
@@ -44,7 +58,7 @@ pub async fn try_load_client() -> Result<(), anyhow::Error> {
         root_path.clone()
     };
     let file_path = root_path + "/client.json";
-    info!("Trying to load bing client from: {}",file_path);
+    info!("Trying to load bing client from: {}", file_path);
     let client_json = fs::read_to_string(file_path).await?;
     let client = serde_json::from_str::<BingClient>(&client_json)?;
     let mut global_client = BING_CLIENT.write().await;

@@ -8,9 +8,12 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 anyhow = "1.0.81"
-bing_client = { path = "D:/Git/bing_client" }
+bing_client = { git = "https://github.com/canxin121/bing_client" }
 dashmap = { version = "5.5.3", features = ["serde"] }
-flutter_rust_bridge = { version = "=2.0.0-dev.30", features = ["anyhow", "console_error_panic_hook"] }
+flutter_rust_bridge = { version = "=2.0.0-dev.30", features = [
+    "anyhow",
+    "console_error_panic_hook",
+] }
 genawaiter = "0.99.1"
 lazy_static = "1.4.0"
 log = "0.4.21"

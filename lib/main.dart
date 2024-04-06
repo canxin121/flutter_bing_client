@@ -1,14 +1,8 @@
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bing_client/comps/chat_page.dart';
 import 'package:flutter_bing_client/comps/chats_list.dart';
-import 'package:flutter_bing_client/comps/desktop_webview_cookie.dart'
-    as desktop_cookie;
-import 'package:flutter_bing_client/comps/mobile_webview_cookie.dart'
-    as mobile_cookie;
 import 'package:flutter_bing_client/comps/new_chat.dart';
+import 'package:flutter_bing_client/comps/settiing_page.dart';
 import 'package:flutter_bing_client/src/rust/api/bing_client_types.dart';
 import 'package:flutter_bing_client/src/rust/api/bing_client_wrap.dart';
 import 'package:flutter_bing_client/src/rust/api/init.dart';
@@ -18,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await RustLib.init();
   try {
     await initLogger();
@@ -55,42 +50,7 @@ class HomeCompState extends State<HomeComp> {
   @override
   void initState() {
     super.initState();
-    _initializeCookie();
-  }
-
-  Future<void> _initializeCookie() async {
-    try {
-      await tryLoadClient();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // ignore: use_build_context_synchronously
-        showSuccessSnackBar("加载BingClient成功", context);
-      });
-    } catch (e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showInfoSnackBar("请先登录MS账号", context);
-      });
-      String cookie = "";
-      if (Platform.isAndroid || Platform.isIOS) {
-        if (context.mounted) {
-          // ignore: use_build_context_synchronously
-          cookie = await mobile_cookie.getCookie(context);
-        }
-      } else {
-        cookie = await desktop_cookie.getCookie();
-      }
-      try {
-        await recreateClientSave(cookieStr: cookie);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // ignore: use_build_context_synchronously
-          showSuccessSnackBar("创建BingClient成功", context);
-        });
-      } catch (e) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // ignore: use_build_context_synchronously
-          showErrorSnackBar("创建BingClient失败: $e", context);
-        });
-      }
-    }
+    initializeCilentOnStart(context);
     getUpdateChatList().then((value) {
       setState(() {
         chats = value;
@@ -117,7 +77,9 @@ class HomeCompState extends State<HomeComp> {
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.settings),
-              onPressed: () {},
+              onPressed: () {
+                navigate2SettingPage(context);
+              },
             ),
           ],
         ),

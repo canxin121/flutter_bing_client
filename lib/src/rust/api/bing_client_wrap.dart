@@ -12,7 +12,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 // The type `ROOT_PATH` is not used by any `pub` functions, thus it is ignored.
 // The type `STOP_SIGNALS` is not used by any `pub` functions, thus it is ignored.
 
-Future<void> displayGlobalState({dynamic hint}) =>
+Future<DisplayConfig> displayGlobalState({dynamic hint}) =>
     RustLib.instance.api.displayGlobalState(hint: hint);
 
 Future<void> tryLoadClient({dynamic hint}) =>

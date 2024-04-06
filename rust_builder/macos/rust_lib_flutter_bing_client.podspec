@@ -40,5 +40,6 @@ A new Flutter FFI plugin project.
     # Flutter.framework does not contain a i386 slice.
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386',
     'OTHER_LDFLAGS' => '-force_load ${BUILT_PRODUCTS_DIR}/librust_lib_flutter_bing_client.a',
+    'OTHER_LDFLAGS' => '$(inherited) -framework SystemConfiguration'
   }
 end

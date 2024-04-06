@@ -13,3 +13,12 @@ pub struct WrappedMsg {
     pub author: String,
     pub text: String,
 }
+
+#[flutter_rust_bridge::frb]
+pub struct DisplayConfig {
+    pub state: bool,
+    pub root_path: String,
+    pub cookie: String,
+    pub chat_list_len: u32,
+    pub stop_signal_len: u32,
+}

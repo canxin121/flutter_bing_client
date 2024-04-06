@@ -77,7 +77,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> deleteChat({required String id, dynamic hint});
 
-  Future<void> displayGlobalState({dynamic hint});
+  Future<DisplayConfig> displayGlobalState({dynamic hint});
 
   Future<List<WrappedMsg>> getChatMsgs({required String id, dynamic hint});
 
@@ -192,7 +192,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> displayGlobalState({dynamic hint}) {
+  Future<DisplayConfig> displayGlobalState({dynamic hint}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -200,7 +200,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             funcId: 1, port: port_);
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_display_config,
         decodeErrorData: null,
       ),
       constMeta: kDisplayGlobalStateConstMeta,
@@ -499,6 +499,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
   int dco_decode_box_autoadd_u_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_u_64(raw);
@@ -508,6 +514,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   WrappedChat dco_decode_box_autoadd_wrapped_chat(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_wrapped_chat(raw);
+  }
+
+  @protected
+  DisplayConfig dco_decode_display_config(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return DisplayConfig(
+      state: dco_decode_bool(arr[0]),
+      rootPath: dco_decode_String(arr[1]),
+      cookie: dco_decode_String(arr[2]),
+      chatListLen: dco_decode_u_32(arr[3]),
+      stopSignalLen: dco_decode_u_32(arr[4]),
+    );
   }
 
   @protected
@@ -544,6 +565,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  int dco_decode_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
   }
 
   @protected
@@ -606,6 +633,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
   int sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_64(deserializer));
@@ -616,6 +649,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_wrapped_chat(deserializer));
+  }
+
+  @protected
+  DisplayConfig sse_decode_display_config(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_state = sse_decode_bool(deserializer);
+    var var_rootPath = sse_decode_String(deserializer);
+    var var_cookie = sse_decode_String(deserializer);
+    var var_chatListLen = sse_decode_u_32(deserializer);
+    var var_stopSignalLen = sse_decode_u_32(deserializer);
+    return DisplayConfig(
+        state: var_state,
+        rootPath: var_rootPath,
+        cookie: var_cookie,
+        chatListLen: var_chatListLen,
+        stopSignalLen: var_stopSignalLen);
   }
 
   @protected
@@ -684,6 +733,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint32();
+  }
+
+  @protected
   int sse_decode_u_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint64();
@@ -731,12 +786,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
   void sse_encode_AnyhowException(
       AnyhowException self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -750,6 +799,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
   void sse_encode_box_autoadd_u_64(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_64(self, serializer);
@@ -760,6 +815,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       WrappedChat self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_wrapped_chat(self, serializer);
+  }
+
+  @protected
+  void sse_encode_display_config(DisplayConfig self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.state, serializer);
+    sse_encode_String(self.rootPath, serializer);
+    sse_encode_String(self.cookie, serializer);
+    sse_encode_u_32(self.chatListLen, serializer);
+    sse_encode_u_32(self.stopSignalLen, serializer);
   }
 
   @protected
@@ -820,6 +885,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint32(self);
+  }
+
+  @protected
   void sse_encode_u_64(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint64(self);
@@ -857,11 +928,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
-  }
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
   }
 }
