@@ -50,15 +50,17 @@ class HomeCompState extends State<HomeComp> {
   @override
   void initState() {
     super.initState();
-    initializeCilentOnStart(context);
-    getUpdateChatList().then((value) {
-      setState(() {
-        chats = value;
-      });
-    }).catchError((e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // ignore: use_build_context_synchronously
-        showErrorSnackBar("获取Chat List失败: $e" "\n可以尝试手动刷新.", context);
+    initializeCilentOnStart(context).then((_) {
+      talker.info("尝试获取chatlist");
+      getUpdateChatList().then((value) {
+        setState(() {
+          chats = value;
+        });
+      }).catchError((e) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // ignore: use_build_context_synchronously
+          showErrorSnackBar("获取Chat List失败: $e" "\n可以尝试手动刷新.", context);
+        });
       });
     });
   }

@@ -66,7 +66,7 @@ Future<void> initializeCilentOnStart(BuildContext context) async {
     await tryLoadClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // ignore: use_build_context_synchronously
-      showSuccessSnackBar("加载BingClient成功", context);
+      talker.info("加载BingClient成功");
     });
   } catch (e) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -127,6 +127,6 @@ Future<void> tryLoadClientWrapped(BuildContext context) async {
   tryLoadClient().then((_) {
     showSuccessSnackBar("成功加载BingClient", context);
   }).catchError((e) {
-    showErrorSnackBar("加载BingClient失败: &e", context);
+    showErrorSnackBar("加载BingClient失败: $e", context);
   });
 }
