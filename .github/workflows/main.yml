@@ -129,6 +129,12 @@ jobs:
 
       - run: flutter build macos --release --verbose
       
+      - name: Install tree
+        run: brew install tree
+        
+      - name: Print directory tree
+        run: tree build/macos/Build/Products/Release
+      
       - name: Upload files
         uses: actions/upload-artifact@v2
         with:
