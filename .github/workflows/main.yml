@@ -112,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: build_linux
-          path: build/linux/x64/release
+          path: build/linux/x64/release/bundle
           
   build_macos:
     runs-on: macos-latest
@@ -129,8 +129,14 @@ jobs:
 
       - run: flutter build macos --release --verbose
       
+      - name: Install tree
+        run: brew install tree
+        
+      - name: Print directory tree
+        run: tree build/macos/Build/Products/Release
+      
       - name: Upload files
         uses: actions/upload-artifact@v2
         with:
           name: build_macos
-          path: build/macos/Build/Products/Release
+          path: build/macos/Build/Products/Release/*.app
