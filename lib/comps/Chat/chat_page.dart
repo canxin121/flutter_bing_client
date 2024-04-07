@@ -87,12 +87,12 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     controller = Get.put(ChatController(), tag: widget.chat.conversationId);
-    if (!widget.isNew) {
-      fetchCharMsgs(false);
+    if (!widget.isNew && !controller.checkPending()) {
+      fetchChatMsgs(false);
     }
   }
 
-  void fetchCharMsgs(bool log) {
+  void fetchChatMsgs(bool log) {
     getChatMsgs(id: widget.chat.conversationId).then((msgs) async {
       List<types.Message> newMessages = [];
       for (var index = msgs.length - 1; index >= 0; index--) {
@@ -126,7 +126,14 @@ class _ChatPageState extends State<ChatPage> {
             IconButton(
               icon: const Icon(Icons.refresh_outlined),
               onPressed: () {
-                fetchCharMsgs(true);
+                if (controller.checkPending()) {
+                  showConfirmDialog(context, "回复正在进行中,刷新消息将会导致中断和消失,确认刷新吗?")
+                      .then((value) {
+                    if (value) {
+                      fetchChatMsgs(true);
+                    }
+                  });
+                }
               },
             )
           ],
