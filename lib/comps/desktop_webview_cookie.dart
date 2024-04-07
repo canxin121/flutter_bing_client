@@ -9,43 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-// void main(List<String> args) {
-//   debugPrint('args: $args');
-//   if (runWebViewTitleBarWidget(args)) {
-//     return;
-//   }
-//   WidgetsFlutterBinding.ensureInitialized();
-//   runApp(const HomePage());
-// }
-
-// class HomePage extends StatelessWidget {
-//   const HomePage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       home: Scaffold(
-//         appBar: AppBar(
-//           title: const Text('Home Page'),
-//         ),
-//         body: Center(
-//           child: ElevatedButton(
-//             onPressed: () async {
-//               getCookie().then((value) {
-//                 // log("Finally success: $value");
-//               }).catchError((e) {
-//                 // log("Finally failed: $e");
-//               });
-//             },
-//             child: const Text('Get Cookie'),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 Future<String> getCookie() async {
   String url = "https://login.live.com/";
   Webview? currentWebview;
@@ -58,6 +21,8 @@ Future<String> getCookie() async {
     webviewAvailable = false;
   }
   if (webviewAvailable) {
+    await WebviewWindow.clearAll(
+        userDataFolderWindows: await _getWebViewPath());
     currentWebview = await WebviewWindow.create(
       configuration: CreateConfiguration(
         userDataFolderWindows: await _getWebViewPath(),
@@ -67,22 +32,22 @@ Future<String> getCookie() async {
     currentWebview
       ..setBrightness(Brightness.dark)
       ..launch(url)
-      ..addOnUrlRequestCallback((url) {
+      ..addOnUrlRequestCallback((url) async {
         if (url.startsWith("https://account.microsoft.com")) {
           currentWebview?.launch("https://www.bing.com/");
-          currentWebview!.evaluateJavaScript("document.cookie").then((value) {
-            value = value?.substring(1, value.length - 1);
-            log("Succeed to get cookie: $value");
-            cookieCompleter.complete(value);
-            currentWebview?.close();
-          }).catchError((e) {
-            log("Failed to get cookie: $e");
-            cookieCompleter.completeError(e);
-            currentWebview?.close();
-          });
+          String cookie = "";
+          while (!cookie.contains("_U=")) {
+            await Future.delayed(const Duration(microseconds: 500));
+            var temp =
+                await currentWebview!.evaluateJavaScript("document.cookie");
+            if (temp != null) {
+              cookie = temp.substring(1, temp.length - 1);
+            }
+          }
+          cookieCompleter.complete(cookie);
+          currentWebview?.close();
         }
-      })
-      ..onClose.whenComplete(() {});
+      });
   }
 
   return cookieCompleter.future;

@@ -75,7 +75,7 @@ class SettingPageState extends State<SettingPage> {
                         .then((cookieOption) {
                       if (cookieOption != null) {
                         recreateClientSave(cookieStr: cookieOption).then((_) {
-                          fetchCookieRecreateClient(context);
+                          showSuccessSnackBar("成功重建BingClient", context);
                         }).catchError((e) {
                           showErrorSnackBar("创建BingClient失败: $e", context);
                         });
