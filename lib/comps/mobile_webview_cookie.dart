@@ -44,8 +44,7 @@ class WebViewExampleState extends State<WebViewExample> {
                 .runJavaScriptReturningResult('document.cookie');
             _cookie = cookie.toString();
           }
-          if (context.mounted) {
-            // ignore: use_build_context_synchronously
+          if (mounted) {
             Navigator.pop(context, _cookie);
           }
         }

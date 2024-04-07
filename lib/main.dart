@@ -58,7 +58,6 @@ class HomeCompState extends State<HomeComp> {
         });
       }).catchError((e) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // ignore: use_build_context_synchronously
           showErrorSnackBar("获取Chat List失败: $e" "\n可以尝试手动刷新.", context);
         });
       });
@@ -95,13 +94,11 @@ class HomeCompState extends State<HomeComp> {
                       .firstWhere((chat) => chat.conversationId == id)
                       .chatName = title;
                 });
-                if (context.mounted) {
-                  // ignore: use_build_context_synchronously
+                if (mounted) {
                   showSuccessSnackBar("重命名Chat成功", context);
                 }
               }).catchError((e) {
-                if (context.mounted) {
-                  // ignore: use_build_context_synchronously
+                if (mounted) {
                   showErrorSnackBar("重命名Chat失败: $e", context);
                 }
               });
@@ -111,13 +108,11 @@ class HomeCompState extends State<HomeComp> {
                 setState(() {
                   chats.removeWhere((chat) => chat.conversationId == id);
                 });
-                if (context.mounted) {
-                  // ignore: use_build_context_synchronously
+                if (mounted) {
                   showSuccessSnackBar("删除Chat成功", context);
                 }
               }).catchError((e) {
-                if (context.mounted) {
-                  // ignore: use_build_context_synchronously
+                if (mounted) {
                   showErrorSnackBar("删除Chat失败: $e", context);
                 }
               });
@@ -159,13 +154,11 @@ class HomeCompState extends State<HomeComp> {
                   setState(() {
                     chats = value;
                   });
-                  if (context.mounted) {
-                    // ignore: use_build_context_synchronously
+                  if (mounted) {
                     showSuccessSnackBar("刷新Chat List成功", context);
                   }
                 }).catchError((e) {
-                  if (context.mounted) {
-                    // ignore: use_build_context_synchronously
+                  if (mounted) {
                     showErrorSnackBar("刷新Chat List失败: $e", context);
                   }
                 });

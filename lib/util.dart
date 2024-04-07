@@ -65,7 +65,6 @@ Future<void> initializeCilentOnStart(BuildContext context) async {
   try {
     await tryLoadClient();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: use_build_context_synchronously
       talker.info("加载BingClient成功");
     });
   } catch (e) {
@@ -74,22 +73,17 @@ Future<void> initializeCilentOnStart(BuildContext context) async {
     });
     String cookie = "";
     if (Platform.isAndroid || Platform.isIOS) {
-      if (context.mounted) {
-        // ignore: use_build_context_synchronously
-        cookie = await mobile_cookie.getCookie(context);
-      }
+      cookie = await mobile_cookie.getCookie(context);
     } else {
       cookie = await desktop_cookie.getCookie();
     }
     try {
       await recreateClientSave(cookieStr: cookie);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // ignore: use_build_context_synchronously
         showSuccessSnackBar("创建BingClient成功", context);
       });
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // ignore: use_build_context_synchronously
         showErrorSnackBar("创建BingClient失败: $e", context);
       });
     }
@@ -102,22 +96,17 @@ Future<void> fetchCookieRecreateClient(BuildContext context) async {
     showInfoSnackBar("请登录微软账号,并等待自动返回", context);
   });
   if (Platform.isAndroid || Platform.isIOS) {
-    if (context.mounted) {
-      // ignore: use_build_context_synchronously
-      cookie = await mobile_cookie.getCookie(context);
-    }
+    cookie = await mobile_cookie.getCookie(context);
   } else {
     cookie = await desktop_cookie.getCookie();
   }
   try {
     await recreateClientSave(cookieStr: cookie);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: use_build_context_synchronously
       showSuccessSnackBar("创建BingClient成功", context);
     });
   } catch (e) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ignore: use_build_context_synchronously
       showErrorSnackBar("创建BingClient失败: $e", context);
     });
   }
