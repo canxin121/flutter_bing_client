@@ -730,10 +730,11 @@ packages:
   re_editor:
     dependency: "direct main"
     description:
-      name: re_editor
-      sha256: "5933029ab831ceb165b90e7daf475e3e92ffca8aeb784a3a30369b9677ba6a60"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "82c3cdbbc85e8170c4f98274fa9210876be35577"
+      url: "https://github.com/canxin121/re-editor.git"
+    source: git
     version: "0.1.0"
   re_highlight:
     dependency: "direct main"
