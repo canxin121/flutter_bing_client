@@ -1,3 +1,4 @@
+//import 'package:chinese_font_library/chinese_font_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bing_client/comps/chat_page.dart';
 import 'package:flutter_bing_client/comps/chats_list.dart';
@@ -48,9 +49,8 @@ class HomeCompState extends State<HomeComp> {
   List<WrappedChat> chats = [];
 
   @override
-  void initState() {
-    super.initState();
-    initializeCilentOnStart(context).then((_) {
+  void didChangeDependencies() async {
+    await initializeCilentOnStart(context).then((_) {
       talker.info("尝试获取chatlist");
       getUpdateChatList().then((value) {
         setState(() {
@@ -63,6 +63,7 @@ class HomeCompState extends State<HomeComp> {
         });
       });
     });
+    super.didChangeDependencies();
   }
 
   @override

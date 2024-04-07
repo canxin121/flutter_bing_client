@@ -452,9 +452,9 @@ dependencies = [
 
 [[package]]
 name = "flutter_rust_bridge"
-version = "2.0.0-dev.30"
+version = "2.0.0-dev.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cc32be8039ca8f9a305b06134f121d62a633a7acc44ef1e990f890a9c83bbad"
+checksum = "ce0ad7ece8037d2e85f53413c5cc1e6b33b56ff63fc0a530c08eec7c4b8b3f26"
 dependencies = [
  "allo-isolate",
  "android_logger",
@@ -479,9 +479,9 @@ dependencies = [
 
 [[package]]
 name = "flutter_rust_bridge_macros"
-version = "2.0.0-dev.30"
+version = "2.0.0-dev.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccd41c403967dcc593ab21cb728ca781247b4aa8ebfc3871ff6832f9e85824f2"
+checksum = "5844c71d6ea7f6023838838e6d01aeeef41920abc8e628ca24bac19d09c8fea6"
 
 [[package]]
 name = "fnv"
