@@ -1,9 +1,6 @@
-import 'dart:ui';
-
-import 'package:chinese_font_library/chinese_font_library.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bing_client/comps/largeTextEditor/find.dart';
-import 'package:flutter_bing_client/comps/largeTextEditor/menu.dart';
+// import 'package:flutter_bing_client/comps/largeTextEditor/menu.dart';
 import 'package:flutter_bing_client/util.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/csharp.dart';
@@ -84,7 +81,7 @@ class _LargeTextEditorState extends State<LargeTextEditor> {
       },
       findBuilder: (context, controller, readOnly) =>
           CodeFindPanelView(controller: controller, readOnly: readOnly),
-      toolbarController: const ContextMenuControllerImpl(),
+      // toolbarController: const ContextMenuControllerImpl(),
       sperator: Container(width: 1, color: Colors.blue),
     );
   }
