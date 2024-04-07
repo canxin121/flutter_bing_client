@@ -25,8 +25,8 @@ class WebViewExampleState extends State<WebViewExample> {
   late String _cookie = "";
 
   @override
-  Future<void> didChangeDependencies() async {
-    super.didChangeDependencies();
+  Future<void> initState() async {
+    super.initState();
     WebViewCookieManager manager = WebViewCookieManager();
     _controller = WebViewController();
     await manager.clearCookies();
@@ -35,7 +35,7 @@ class WebViewExampleState extends State<WebViewExample> {
       onPageFinished: (url) async {
         if (url.startsWith("https://account.microsoft.com")) {
           await _controller.loadRequest(Uri.parse("https://www.bing.com/"));
-          if (mounted) {
+          if (context.mounted) {
             showInfoSnackBar("如果显示登录,请点击使用个人账户登录", context);
           }
           while (!_cookie.contains("_U=")) {
