@@ -1,13 +1,15 @@
+import 'package:chinese_font_library/chinese_font_library.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bing_client/comps/chat_page.dart';
-import 'package:flutter_bing_client/comps/chats_list.dart';
-import 'package:flutter_bing_client/comps/new_chat.dart';
+import 'package:flutter_bing_client/comps/Chat/chat_page.dart';
+import 'package:flutter_bing_client/comps/Chat/chats_list.dart';
+import 'package:flutter_bing_client/comps/Chat/new_chat.dart';
 import 'package:flutter_bing_client/comps/settiing_page.dart';
 import 'package:flutter_bing_client/src/rust/api/bing_client_types.dart';
 import 'package:flutter_bing_client/src/rust/api/bing_client_wrap.dart';
 import 'package:flutter_bing_client/src/rust/api/init.dart';
 import 'package:flutter_bing_client/src/rust/frb_generated.dart';
 import 'package:flutter_bing_client/util.dart';
+import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
@@ -26,12 +28,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return MaterialApp(
       theme: ThemeData(
-        scrollbarTheme: ScrollbarThemeData(
-          thumbColor: MaterialStateProperty.all(Colors.black),
-        ),
-      ),
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: MaterialStateProperty.all(Colors.black),
+          ),
+          textTheme: const TextTheme().useSystemChineseFont(brightness)),
       home: const HomeComp(),
     );
   }
@@ -45,17 +48,12 @@ class HomeComp extends StatefulWidget {
 }
 
 class HomeCompState extends State<HomeComp> {
-  List<WrappedChat> chats = [];
-
   @override
   void initState() {
     super.initState();
     initializeCilentOnStart(context).then((_) {
-      talker.info("尝试获取chatlist");
       getUpdateChatList().then((value) {
-        setState(() {
-          chats = value;
-        });
+        Get.find<ChatListController>().setChats(value);
       }).catchError((e) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           showErrorSnackBar("获取Chat List失败: $e" "\n可以尝试手动刷新.", context);
@@ -66,16 +64,27 @@ class HomeCompState extends State<HomeComp> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return MaterialApp(
       theme: ThemeData(
-        scrollbarTheme: ScrollbarThemeData(
-          thumbColor: MaterialStateProperty.all(Colors.black),
-        ),
-      ),
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: MaterialStateProperty.all(Colors.black),
+          ),
+          textTheme: const TextTheme().useSystemChineseFont(brightness)),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('ChatList'),
+          title: Text(
+            'ChatList',
+            style: const TextStyle(fontWeight: FontWeight.bold)
+                .useSystemChineseFont(),
+          ),
           actions: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.check_box_outline_blank),
+              onPressed: () {
+                Get.find<ChatListController>().toggleAllCheckbox();
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
@@ -86,14 +95,9 @@ class HomeCompState extends State<HomeComp> {
         ),
         body: Center(
           child: ConversationListView(
-            chats: chats,
             onEdit: (String title, String id) {
               renameChat(id: id, newName: title).then((_) {
-                setState(() {
-                  chats
-                      .firstWhere((chat) => chat.conversationId == id)
-                      .chatName = title;
-                });
+                Get.find<ChatListController>().renameChat(id, title);
                 if (mounted) {
                   showSuccessSnackBar("重命名Chat成功", context);
                 }
@@ -104,16 +108,19 @@ class HomeCompState extends State<HomeComp> {
               });
             },
             onDelete: (String id) {
-              deleteChat(id: id).then((_) {
-                setState(() {
-                  chats.removeWhere((chat) => chat.conversationId == id);
-                });
-                if (mounted) {
-                  showSuccessSnackBar("删除Chat成功", context);
-                }
-              }).catchError((e) {
-                if (mounted) {
-                  showErrorSnackBar("删除Chat失败: $e", context);
+              showConfirmDialog(context, "确认删除该chat吗?").then((value) {
+                if (value) {
+                  deleteChat(id: id).then((_) {
+                    Get.find<ChatListController>().deleteChats([id]);
+                    if (mounted) {
+                      showSuccessSnackBar("删除Chat成功", context);
+                    }
+                    updateChatListWrapped(context);
+                  }).catchError((e) {
+                    if (mounted) {
+                      showErrorSnackBar("删除Chat失败: $e", context);
+                    }
+                  });
                 }
               });
             },
@@ -133,10 +140,8 @@ class HomeCompState extends State<HomeComp> {
                   (newId) {
                     showAddChatDialog(newId, context).then((newChat) {
                       if (newChat != null) {
-                        setState(() {
-                          chats.insert(0, newChat);
-                          navigate2ChatPage(newChat, true, context);
-                        });
+                        Get.find<ChatListController>().addChat(newChat);
+                        navigate2ChatPage(newChat, true, context);
                       }
                     });
                   },
@@ -147,19 +152,32 @@ class HomeCompState extends State<HomeComp> {
             ),
             const Padding(padding: EdgeInsets.all(10)),
             FloatingActionButton(
-              heroTag: "RefreshChatList",
-              child: const Icon(Icons.refresh),
+                heroTag: "RefreshChatList",
+                child: const Icon(Icons.refresh),
+                onPressed: () {
+                  updateChatListWrapped(context);
+                }),
+            const Padding(padding: EdgeInsets.all(10)),
+            FloatingActionButton(
+              heroTag: "DeleteChatsTag",
+              child: const Icon(Icons.delete_forever),
               onPressed: () {
-                getUpdateChatList().then((value) {
-                  setState(() {
-                    chats = value;
-                  });
-                  if (mounted) {
-                    showSuccessSnackBar("刷新Chat List成功", context);
-                  }
-                }).catchError((e) {
-                  if (mounted) {
-                    showErrorSnackBar("刷新Chat List失败: $e", context);
+                showConfirmDialog(context, "确认删除选中的chat吗?").then((value) {
+                  if (value) {
+                    var ids = Get.find<ChatListController>().getSelectedIds();
+                    deleteChats(
+                      ids: ids,
+                    ).then((_) {
+                      Get.find<ChatListController>().deleteChats(ids);
+                      if (mounted) {
+                        showSuccessSnackBar("删除选中chats成功", context);
+                      }
+                      updateChatListWrapped(context);
+                    }).catchError((e) {
+                      if (mounted) {
+                        showErrorSnackBar("删除选中chats失败: $e", context);
+                      }
+                    });
                   }
                 });
               },
@@ -169,4 +187,18 @@ class HomeCompState extends State<HomeComp> {
       ),
     );
   }
+}
+
+void updateChatListWrapped(BuildContext context) {
+  getUpdateChatList().then((value) {
+    Get.find<ChatListController>().setChats(value);
+
+    if (context.mounted) {
+      showSuccessSnackBar("刷新Chat List成功", context);
+    }
+  }).catchError((e) {
+    if (context.mounted) {
+      showErrorSnackBar("刷新Chat List失败: $e", context);
+    }
+  });
 }

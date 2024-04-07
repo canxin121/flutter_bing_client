@@ -1,13 +1,17 @@
+use anyhow::Result;
 use flutter_rust_bridge;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime, UtcOffset};
 use uuid::Uuid;
-
 #[flutter_rust_bridge::frb(sync)]
 pub fn generate_uuidv4_string() -> String {
     Uuid::new_v4().to_string()
 }
 
-
+#[flutter_rust_bridge::frb(sync)]
+pub fn read_file(path: String) -> Result<String> {
+    let content = std::fs::read_to_string(path)?;
+    Ok(content)
+}
 
 pub fn gen_time_local(time: Option<u64>) -> String {
     match time {

@@ -9,5 +9,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 String generateUuidv4String({dynamic hint}) =>
     RustLib.instance.api.generateUuidv4String(hint: hint);
 
+String readFile({required String path, dynamic hint}) =>
+    RustLib.instance.api.readFile(path: path, hint: hint);
+
 Future<String> genTimeLocal({int? time, dynamic hint}) =>
     RustLib.instance.api.genTimeLocal(time: time, hint: hint);

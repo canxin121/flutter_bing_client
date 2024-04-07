@@ -47,3 +47,6 @@ Stream<String> askStreamPlain(
 
 Future<void> stopAnswer({required String id, dynamic hint}) =>
     RustLib.instance.api.stopAnswer(id: id, hint: hint);
+
+Future<void> deleteChats({required List<String> ids, dynamic hint}) =>
+    RustLib.instance.api.deleteChats(ids: ids, hint: hint);

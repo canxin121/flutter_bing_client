@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bing_client/src/rust/api/bing_client_types.dart';
+import 'package:get/get.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 Future<WrappedChat?> showAddChatDialog(
@@ -16,7 +17,8 @@ Future<WrappedChat?> showAddChatDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Add Chat'),
+        title: const Text('Add Chat',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 200.0), // 你可以根据需要调整这个值
@@ -29,7 +31,9 @@ Future<WrappedChat?> showAddChatDialog(
                     items: tones.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value),
+                        child: Text(value,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.normal)),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -44,7 +48,8 @@ Future<WrappedChat?> showAddChatDialog(
                         .map(
                             (plugin) => MultiSelectItem<String>(plugin, plugin))
                         .toList(),
-                    title: const Text("Plugins"),
+                    title: const Text("Plugins",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     onConfirm: (values) {
                       selectedPlugins = values;
                     },
@@ -56,19 +61,21 @@ Future<WrappedChat?> showAddChatDialog(
         ),
         actions: <Widget>[
           TextButton(
-            child: const Text('Cancel'),
+            child: const Text('Cancel',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('Submit'),
+            child: const Text('Submit',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 Navigator.of(context).pop(
                   WrappedChat(
                     conversationId: newId,
-                    chatName: "New Chat",
+                    chatName: "New Chat".obs,
                     tone: selectedTone,
                     updateTimeLocal: DateTime.now().toIso8601String(),
                     plugins: selectedPlugins,

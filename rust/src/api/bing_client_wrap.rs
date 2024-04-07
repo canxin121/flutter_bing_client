@@ -220,7 +220,7 @@ pub async fn ask_stream_plain(
                 match sink.add(data) {
                     Ok(_) => {}
                     Err(e) => {
-                        error!("Failed to trans answer: {e}");
+                        error!("{e}");
                     }
                 }
             }
@@ -233,10 +233,23 @@ pub async fn ask_stream_plain(
 
 #[flutter_rust_bridge::frb]
 pub fn stop_answer(id: String) -> Result<(), anyhow::Error> {
-    if let Some(stop_fn) = STOP_SIGNALS.get(&id) {
+    if let Some((_, stop_fn)) = STOP_SIGNALS.remove(&id) {
         stop_fn.as_ref()();
         Ok(())
     } else {
         return Err(anyhow::anyhow!("Stop Signal Not Found"));
+    }
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn delete_chats(ids: Vec<String>) -> Result<(), anyhow::Error> {
+    let bing_client = BING_CLIENT.read().await;
+    if let Some(client) = bing_client.as_ref() {
+        match client.delete_chats(bing_client::TodelChats::Ids(ids)).await {
+            Ok(()) => Ok(()),
+            Err(e) => Err(anyhow::anyhow!("{e}")),
+        }
+    } else {
+        Err(anyhow::anyhow!("Bing Client is not inited"))
     }
 }

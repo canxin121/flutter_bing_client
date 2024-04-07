@@ -56,7 +56,9 @@ class WebViewExampleState extends State<WebViewExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cookie Extractor')),
+      appBar: AppBar(
+          title: const Text('Cookie Extractor',
+              style: TextStyle(fontWeight: FontWeight.bold))),
       body: WebViewWidget(controller: _controller),
     );
   }

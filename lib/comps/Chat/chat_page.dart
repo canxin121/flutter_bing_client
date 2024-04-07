@@ -1,7 +1,8 @@
 // ignore_for_file: dead_code
 
-import 'dart:developer';
-import 'package:flutter_bing_client/comps/code_wrapper.dart';
+import 'package:bubble/bubble.dart';
+import 'package:flutter_bing_client/comps/Markdown/code_wrapper.dart';
+import 'package:flutter_bing_client/comps/largeTextEditor/large_text_editor.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,8 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:code_text_field/code_text_field.dart';
 import 'package:get/get.dart';
 
 bool isDark = false;
@@ -87,11 +88,11 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     controller = Get.put(ChatController(), tag: widget.chat.conversationId);
     if (!widget.isNew) {
-      fetchCharMsgs();
+      fetchCharMsgs(false);
     }
   }
 
-  void fetchCharMsgs() {
+  void fetchCharMsgs(bool log) {
     getChatMsgs(id: widget.chat.conversationId).then((msgs) async {
       List<types.Message> newMessages = [];
       for (var index = msgs.length - 1; index >= 0; index--) {
@@ -103,9 +104,10 @@ class _ChatPageState extends State<ChatPage> {
             id: index.toString()));
       }
       controller.setMessages(newMessages);
-      showSuccessSnackBar("刷新会话消息列表成功", context);
+      if (log) {
+        showSuccessSnackBar("刷新会话消息列表成功", context);
+      }
     }).catchError((e) async {
-      log("Failed to get Chat Messages: $e");
       showErrorSnackBar("获取Chat Messages失败: $e", context);
     });
   }
@@ -113,10 +115,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: Text(
-            widget.chat.chatName.split("\n")[0],
-            overflow: TextOverflow.fade,
-          ),
+          title: Text(widget.chat.chatName.split("\n")[0],
+              overflow: TextOverflow.fade,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -125,7 +126,7 @@ class _ChatPageState extends State<ChatPage> {
             IconButton(
               icon: const Icon(Icons.refresh_outlined),
               onPressed: () {
-                fetchCharMsgs();
+                fetchCharMsgs(true);
               },
             )
           ],
@@ -133,13 +134,13 @@ class _ChatPageState extends State<ChatPage> {
         body: GetBuilder<ChatController>(
           init: controller,
           builder: (controller) => Chat(
+            bubbleBuilder: _bubbleBuilder,
             theme: DefaultChatTheme(
               messageMaxWidth: MediaQuery.of(context).size.width * 0.8,
               primaryColor: Colors.black12,
             ),
             textMessageBuilder: _textMessageBuilder,
             messages: controller.messages,
-            onMessageLongPress: _handleMessageLongPress,
             user: globalUser,
             customBottomWidget: CustomTextField(
               handleSend: (messages) {
@@ -161,6 +162,56 @@ class _ChatPageState extends State<ChatPage> {
             onSendPressed: (_) {},
           ),
         ),
+      );
+  Widget _bubbleBuilder(
+    Widget child, {
+    required message,
+    required nextMessageInGroup,
+  }) =>
+      Stack(
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 150),
+            child: Bubble(
+              color: const Color(0xfff5f5f7),
+              margin: const BubbleEdges.only(bottom: 60),
+              nip: nextMessageInGroup
+                  ? BubbleNip.no
+                  : globalUser.id != message.author.id
+                      ? BubbleNip.leftBottom
+                      : BubbleNip.rightBottom,
+              child: child,
+            ), // 设置最小宽度为100
+          ),
+          Positioned(
+            bottom: 20,
+            right: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () {
+                    copyMessage(message, context);
+                  },
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.fullscreen),
+                  onPressed: () {
+                    var text = message2String(message);
+                    if (text != null) {
+                      navigateToLargeTextEditor(context, text, false);
+                      // _showFullscreenDialog(text, context);
+                    } else {
+                      showErrorSnackBar("该消息类型不支持全屏查看", context);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       );
 
   void _handleMessageStream(List<types.Message> messages) {
@@ -190,36 +241,6 @@ class _ChatPageState extends State<ChatPage> {
       controller.stopPending();
       showErrorSnackBar("获取回答失败: $e", context);
     });
-  }
-
-  void _handleMessageLongPress(context, types.Message message) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Wrap(
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('复制'),
-              onTap: () {
-                String data;
-                switch (message.type) {
-                  case MessageType.text:
-                    data = (message as types.TextMessage).text;
-                    break;
-                  default:
-                    data = message.toJson()["uri"];
-                }
-                if (data.isNotEmpty) {
-                  Clipboard.setData(ClipboardData(text: data));
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Widget _textMessageBuilder(types.TextMessage message,
@@ -263,94 +284,96 @@ class CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: Container(
-            height: 100.0, // 最高高度
-            alignment: Alignment.center,
-            child: TextField(
-              controller: _controller,
-              maxLines: 1,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0), // 圆角矩形
+    return Stack(alignment: Alignment.bottomCenter, children: [
+      Padding(
+        padding: const EdgeInsets.only(left: 10.0, bottom: 5.0, right: 10.0),
+        child: TextField(
+          controller: _controller,
+          maxLines: 1,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _controller.clear();
+                  },
                 ),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min, // 这一行是必要的，否则Row会占满整个宽度
+                IconButton(
+                  icon: const Icon(Icons.fullscreen),
+                  onPressed: () {
+                    navigateToLargeTextEditor(context, _controller.text, true)
+                        .then((String? outText) {
+                      if (outText != null) {
+                        setState(() {
+                          _controller.text = outText;
+                        });
+                      }
+                    });
+                    // _showFullscreenDialog(_controller.text, context)
+                    //     .then((value) => setState(() {
+                    //           _controller.text = value;
+                    //         }));
+                  },
+                ),
+                Stack(
                   children: <Widget>[
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _controller.clear();
+                    GestureDetector(
+                      onLongPress: () {
+                        setState(() {
+                          _storedMessages.clear();
+                        });
                       },
+                      child: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _handleAttachmentPressed,
+                      ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.fullscreen),
-                      onPressed: () {
-                        _showFullscreenDialog(context)
-                            .then((value) => setState(() {
-                                  _controller.text = value;
-                                }));
-                      },
-                    ),
+                    if (_storedMessages.isNotEmpty)
+                      Positioned(
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: Text(
+                            '${_storedMessages.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-              ),
+                if (widget.chatController.checkPending())
+                  IconButton(
+                    icon: const Icon(Icons.stop),
+                    onPressed: widget.handleStop,
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _handleSendPressed,
+                  ),
+              ],
             ),
           ),
         ),
-        Stack(
-          children: <Widget>[
-            GestureDetector(
-              onLongPress: () {
-                setState(() {
-                  _storedMessages.clear(); // 长按时清空所有的附件
-                });
-              },
-              child: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: _handleAttachmentPressed,
-              ),
-            ),
-            if (_storedMessages.isNotEmpty)
-              Positioned(
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(1),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 12,
-                    minHeight: 12,
-                  ),
-                  child: Text(
-                    '${_storedMessages.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-          ],
-        ),
-        if (widget.chatController.checkPending())
-          IconButton(
-            icon: const Icon(Icons.stop),
-            onPressed: widget.handleStop,
-          )
-        else
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _handleSendPressed,
-          )
-      ],
-    );
+      ),
+    ]);
   }
 
   void _handleSendPressed() {
@@ -374,32 +397,6 @@ class CustomTextFieldState extends State<CustomTextField> {
     });
   }
 
-  Future<String> _showFullscreenDialog(BuildContext context) async {
-    double screenWidth = MediaQuery.of(context).size.width;
-    CodeController controller = CodeController();
-    controller.text = _controller.text;
-    await showDialog(
-      context: context,
-      builder: (context) => ScrollbarTheme(
-        data: ScrollbarThemeData(
-          thumbColor: MaterialStateProperty.all(Colors.white), // 设置滚动条颜色为黑色
-        ),
-        child: Dialog(
-          child: SizedBox(
-            width: screenWidth,
-            child: SingleChildScrollView(
-              child: CodeField(
-                controller: controller,
-                minLines: 10,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    return controller.text;
-  }
-
   void _handleAttachmentPressed() {
     void handleFileSelection() async {
       final result = await FilePicker.platform.pickFiles(
@@ -415,11 +412,16 @@ class CustomTextFieldState extends State<CustomTextField> {
           size: result.files.single.size,
           uri: result.files.single.path!,
         );
-
-        // 不立即添加消息，而是保存为一个状态
-        setState(() {
-          _storedMessages.add(message);
-        });
+        var mimetype = lookupMimeType(message.uri);
+        if (mimetype != null && isAllowType(mimetype)) {
+          setState(() {
+            _storedMessages.add(message);
+          });
+        } else {
+          if (mounted) {
+            showErrorSnackBar("不支持的文件类型:$mimetype", context);
+          }
+        }
       }
     }
 
@@ -476,7 +478,8 @@ class CustomTextFieldState extends State<CustomTextField> {
                     label: const Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Text('Photo',
-                          style: TextStyle(fontSize: 18)), // 调整字体大小
+                          style:
+                              TextStyle(fontWeight: FontWeight.bold)), // 调整字体大小
                     ),
                     style: TextButton.styleFrom(
                         padding: const EdgeInsets.all(16)), // 调整按钮高度
@@ -490,7 +493,8 @@ class CustomTextFieldState extends State<CustomTextField> {
                     label: const Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Text('File',
-                          style: TextStyle(fontSize: 18)), // 调整字体大小
+                          style:
+                              TextStyle(fontWeight: FontWeight.bold)), // 调整字体大小
                     ),
                     style: TextButton.styleFrom(
                         padding: const EdgeInsets.all(16)), // 调整按钮高度
@@ -501,7 +505,8 @@ class CustomTextFieldState extends State<CustomTextField> {
                     label: const Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Text('Cancel',
-                          style: TextStyle(fontSize: 18)), // 调整字体大小
+                          style:
+                              TextStyle(fontWeight: FontWeight.bold)), // 调整字体大小
                     ),
                     style: TextButton.styleFrom(
                         padding: const EdgeInsets.all(16)), // 调整按钮高度
@@ -512,6 +517,33 @@ class CustomTextFieldState extends State<CustomTextField> {
   }
 }
 
+String? message2String(types.Message message) {
+  String? data;
+  switch (message.type) {
+    case MessageType.text:
+      data = (message as types.TextMessage).text;
+      break;
+    default:
+      var jsonData = message.toJson();
+      if (jsonData.containsKey('uri')) {
+        data = message.toJson()["uri"];
+      } else {
+        data = null;
+      }
+  }
+  return data;
+}
+
+void copyMessage(types.Message message, BuildContext context) {
+  var text = message2String(message);
+  if (text != null) {
+    Clipboard.setData(ClipboardData(text: text));
+    showSuccessSnackBar("复制成功", context);
+  } else {
+    showErrorSnackBar("该消息类型目前无法复制", context);
+  }
+}
+
 void navigate2ChatPage(WrappedChat chat, bool isNew, BuildContext context) {
   Navigator.push(
     context,
@@ -519,7 +551,7 @@ void navigate2ChatPage(WrappedChat chat, bool isNew, BuildContext context) {
         builder: (context) => ChatPage(
               chat: chat,
               onNewMessage: (List<types.Message> msgs) {
-                var (text, imagePath) = processMsgs(msgs);
+                var (text, imagePath) = processMsgs(msgs, context);
                 return askStreamPlain(
                     chat: chat, textMsg: text, imagePath: imagePath);
               },

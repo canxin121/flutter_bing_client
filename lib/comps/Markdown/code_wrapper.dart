@@ -45,7 +45,8 @@ class _PreWrapperState extends State<CodeWrapperWidget> {
                         border: Border.all(
                             width: 0.5,
                             color: isDark ? Colors.white : Colors.black)),
-                    child: Text(widget.language),
+                    child: Text(widget.language,
+                        style: const TextStyle(fontWeight: FontWeight.normal)),
                   )),
                 InkWell(
                   child: AnimatedSwitcher(

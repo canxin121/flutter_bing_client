@@ -30,7 +30,8 @@ class SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Setting'),
+        title: const Text('Setting',
+            style: TextStyle(fontWeight: FontWeight.normal)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -41,9 +42,10 @@ class SettingPageState extends State<SettingPage> {
       body: ListView(
         children: <Widget>[
           ExpansionTile(
-            leading: Icon(Icons.check_circle,
+            leading: Icon(config.state ? Icons.check_circle : Icons.error,
                 color: config.state ? Colors.green : Colors.red),
-            title: Text('客户端状态信息: ${config.state ? '正常' : '异常'}'),
+            title: Text('客户端状态信息: ${config.state ? '正常' : '异常'}',
+                style: const TextStyle(fontWeight: FontWeight.normal)),
             trailing: IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
@@ -55,19 +57,23 @@ class SettingPageState extends State<SettingPage> {
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.folder),
-                title: Text('Root Path: ${config.rootPath}'),
+                title: Text('Root Path: ${config.rootPath}',
+                    style: const TextStyle(fontWeight: FontWeight.normal)),
               ),
               ListTile(
                 leading: const Icon(Icons.list),
-                title: Text('Chat List Length: ${config.chatListLen}'),
+                title: Text('Chat List Length: ${config.chatListLen}',
+                    style: const TextStyle(fontWeight: FontWeight.normal)),
               ),
               ListTile(
                 leading: const Icon(Icons.signal_cellular_alt),
-                title: Text('Stop Signal Length: ${config.stopSignalLen}'),
+                title: Text('Stop Signal Length: ${config.stopSignalLen}',
+                    style: const TextStyle(fontWeight: FontWeight.normal)),
               ),
               ListTile(
                 leading: const Icon(Icons.cookie),
-                title: Text('Cookie: ${config.cookie}'),
+                title: Text('Cookie: ${config.cookie}',
+                    style: const TextStyle(fontWeight: FontWeight.normal)),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
@@ -80,6 +86,7 @@ class SettingPageState extends State<SettingPage> {
                           showErrorSnackBar("创建BingClient失败: $e", context);
                         });
                       }
+                      fetchDisplayConfig();
                     });
                   },
                 ),
@@ -88,21 +95,26 @@ class SettingPageState extends State<SettingPage> {
           ),
           ListTile(
             leading: const Icon(Icons.build),
-            title: const Text('重新加载客户端'),
+            title: const Text('重新加载客户端',
+                style: TextStyle(fontWeight: FontWeight.normal)),
             onTap: () {
               tryLoadClientWrapped(context);
+              fetchDisplayConfig();
             },
           ),
           ListTile(
             leading: const Icon(Icons.build),
-            title: const Text('获取Cookie重建客户端'),
+            title: const Text('获取Cookie重建客户端',
+                style: TextStyle(fontWeight: FontWeight.normal)),
             onTap: () {
               fetchCookieRecreateClient(context);
+              fetchDisplayConfig();
             },
           ),
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('日志'),
+            title: const Text('日志',
+                style: TextStyle(fontWeight: FontWeight.normal)),
             onTap: () {
               navigate2TalkerLogPage(context);
             },
