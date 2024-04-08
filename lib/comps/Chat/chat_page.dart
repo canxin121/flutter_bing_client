@@ -134,6 +134,8 @@ class _ChatPageState extends State<ChatPage> {
                       fetchChatMsgs(true);
                     }
                   });
+                }else{
+                  fetchChatMsgs(true);
                 }
               },
             )
