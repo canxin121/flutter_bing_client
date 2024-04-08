@@ -47,11 +47,16 @@ jobs:
         with:
           name: BingCopilot-macos-release-unknown.zip
           path: build/macos/Build/Products/Release/*.app
-
+      
+      - name: Install tree
+        run: brew install tree
+        
+      - name: Print directory tree
+        run: tree build/macos/Build/Products/
+      
       - name: Package Executable
-        run: zip -r "../../../../../build/app/BingCopilot-macos-release-unknown.zip" *
-        working-directory: build/macos/Build/Products/Release/*.app
-
+        run: zip -r "build/app/BingCopilot-macos-release-unknown.zip" "build/macos/Build/Products/Release/BingCopilot.app"
+  
   build_on_linux:
     runs-on: ubuntu-latest
     steps:
