@@ -27,13 +27,13 @@ jobs:
           mkdir -p Payload
           mv ./build/ios/iphoneos/Runner.app Payload
           zip -r -y Payload.zip Payload/Runner.app
-          mv Payload.zip app.ipa
+          mv Payload.zip BingCopilot.ipa
           
       - name: Upload IPA
         uses: actions/upload-artifact@v2
         with:
-          name: build_ios
-          path: app.ipa
+          name: BingCopilot.ipa.zip
+          path: BingCopilot.ipa
   
   build_android:
     runs-on: ubuntu-latest
@@ -62,12 +62,33 @@ jobs:
           flutter clean
           flutter build apk --release --split-per-abi --verbose
 
-      - name: Upload APK
+      - name: Rename APKs
+        run: |
+          mv build/app/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/apk/release/BingCopilot-arm64-v8a-release.apk
+          mv build/app/outputs/apk/release/app-arm64-v8a-release.apk.sha1 build/app/outputs/apk/release/BingCopilot-arm64-v8a-release.apk.sha1
+          mv build/app/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/apk/release/BingCopilot-armeabi-v7a-release.apk
+          mv build/app/outputs/apk/release/app-armeabi-v7a-release.apk.sha1 build/app/outputs/apk/release/BingCopilot-armeabi-v7a-release.apk.sha1
+          mv build/app/outputs/apk/release/app-x86_64-release.apk build/app/outputs/apk/release/BingCopilot-x86_64-release.apk
+          mv build/app/outputs/apk/release/app-x86_64-release.apk.sha1 build/app/outputs/apk/release/BingCopilot-x86_64-release.apk.sha1
+
+      - name: Upload APK1
         uses: actions/upload-artifact@v2
         with:
-          name: build_android
-          path: build/app/outputs/apk/release
+          name: BingCopilot-arm64-v8a-release.apk.zip
+          path: build/app/outputs/apk/release/BingCopilot-arm64-v8a-release.*
+          
+      - name: Upload APK2
+        uses: actions/upload-artifact@v2
+        with:
+          name: BingCopilot-armeabi-v7a-release.apk.zip
+          path: build/app/outputs/apk/release/BingCopilot-armeabi-v7a-release.*
 
+      - name: Upload APK3
+        uses: actions/upload-artifact@v2
+        with:
+          name: BingCopilot-x86_64-release.apk.zip
+          path: build/app/outputs/apk/release/BingCopilot-x86_64-release.*
+    
   build_windows:
     runs-on: windows-latest
     steps:
@@ -86,7 +107,7 @@ jobs:
       - name: Upload files
         uses: actions/upload-artifact@v2
         with:
-          name: build_windows
+          name: BingCopilot-windows-x64.zip
           path: build\windows\x64\runner\Release
 
   build_linux:
@@ -111,7 +132,7 @@ jobs:
       - name: Upload files
         uses: actions/upload-artifact@v2
         with:
-          name: build_linux
+          name: BingCopilot-linux-x64.zip
           path: build/linux/x64/release/bundle
           
   build_macos:
@@ -138,5 +159,5 @@ jobs:
       - name: Upload files
         uses: actions/upload-artifact@v2
         with:
-          name: build_macos
+          name: BingCopilot-macos-unknown.zip
           path: build/macos/Build/Products/Release/*.app
