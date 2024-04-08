@@ -2,6 +2,7 @@
 
 import 'package:bubble/bubble.dart';
 import 'package:flutter_bing_client/comps/Markdown/code_wrapper.dart';
+import 'package:flutter_bing_client/comps/Markdown/edit_markdown_page.dart';
 import 'package:flutter_bing_client/comps/largeTextEditor/large_text_editor.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:file_picker/file_picker.dart';
@@ -208,7 +209,8 @@ class _ChatPageState extends State<ChatPage> {
                   onPressed: () {
                     var text = message2String(message);
                     if (text != null) {
-                      navigateToLargeTextEditor(context, text, false);
+                      navigateToEditMarkdownPage(context, text);
+                      // navigateToLargeTextEditor(context, text, false);
                       // _showFullscreenDialog(text, context);
                     } else {
                       showErrorSnackBar("该消息类型不支持全屏查看", context);
@@ -313,14 +315,16 @@ class CustomTextFieldState extends State<CustomTextField> {
                 IconButton(
                   icon: const Icon(Icons.fullscreen),
                   onPressed: () {
-                    navigateToLargeTextEditor(context, _controller.text, true)
-                        .then((String? outText) {
-                      if (outText != null) {
-                        setState(() {
-                          _controller.text = outText;
-                        });
-                      }
-                    });
+                    navigateToEditMarkdownPage(context, _controller.text);
+
+                    // navigateToLargeTextEditor(context, _controller.text, true)
+                    //     .then((String? outText) {
+                    //   if (outText != null) {
+                    //     setState(() {
+                    //       _controller.text = outText;
+                    //     });
+                    //   }
+                    // });
                     // _showFullscreenDialog(_controller.text, context)
                     //     .then((value) => setState(() {
                     //           _controller.text = value;
