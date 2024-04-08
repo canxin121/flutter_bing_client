@@ -59,8 +59,9 @@ jobs:
           path: build/macos/Build/Products/Release/*.app
 
       - name: Package Executable
-        run: zip -r "../../../../../build/app/BingCopilot-macos-release-unknown.zip" *
-        working-directory: build/macos/Build/Products/Release/*.app
+        run: |
+          mkdir -p build/app/
+          zip -r "build/app/BingCopilot-macos-release-unknown.zip" "build/macos/Build/Products/Release/BingCopilot.app"
 
       - name: Release Macos
         uses: softprops/action-gh-release@v1
