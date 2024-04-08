@@ -1,4 +1,4 @@
-package com.example.flutter_bing_client
+package com.canxin.BingCopilot
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,6 @@
 {
-    "name": "flutter_bing_client",
-    "short_name": "flutter_bing_client",
+    "name": "BingCopilot",
+    "short_name": "BingCopilot",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

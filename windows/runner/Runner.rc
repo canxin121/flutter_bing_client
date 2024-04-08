@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "flutter_bing_client" "\0"
+            VALUE "FileDescription", "BingCopilot" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "flutter_bing_client" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "flutter_bing_client.exe" "\0"
-            VALUE "ProductName", "flutter_bing_client" "\0"
+            VALUE "InternalName", "BingCopilot" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 com.canxin. All rights reserved." "\0"
+            VALUE "OriginalFilename", "BingCopilot.exe" "\0"
+            VALUE "ProductName", "BingCopilot" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
