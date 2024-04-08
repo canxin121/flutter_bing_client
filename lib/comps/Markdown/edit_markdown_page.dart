@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bing_client/comps/Markdown/code_wrapper.dart';
 import 'package:flutter_bing_client/comps/Markdown/custom_node.dart';
 import 'package:flutter_bing_client/comps/Markdown/latex.dart';
 import 'package:flutter_bing_client/comps/Markdown/markdown_page.dart';
 import 'package:flutter_bing_client/comps/platform_detector/platform_detector.dart';
+import 'package:flutter_bing_client/util.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 
 class EditMarkDownWrappedPage extends StatefulWidget {
   final String initialData;
-
-  const EditMarkDownWrappedPage({super.key, this.initialData = ''});
+  final bool saveAble;
+  final bool confirm;
+  const EditMarkDownWrappedPage(
+      {super.key,
+      required this.initialData,
+      this.confirm = false,
+      this.saveAble = false});
 
   @override
   EditMarkDownWrappedPageState createState() => EditMarkDownWrappedPageState();
@@ -30,14 +35,25 @@ class EditMarkDownWrappedPageState extends State<EditMarkDownWrappedPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context, controller.text),
-        ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.confirm) {
+                showConfirmDialog(context, "确定要返回而不保存本次编辑后变化的内容吗?")
+                    .then((value) {
+                  if (value) {
+                    Navigator.pop(context, null);
+                  }
+                });
+              } else {
+                Navigator.pop(context, null);
+              }
+            }),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () => Navigator.pop(context, controller.text),
-          ),
+          if (widget.saveAble)
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: () => Navigator.pop(context, controller.text),
+            ),
         ],
       ),
       body: EditMarkdownPage(initialData: widget.initialData),
@@ -62,14 +78,7 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
 
   @override
   void initState() {
-    final text = widget.initialData;
-    controller = TextEditingController(text: text);
-    if (text.isEmpty) {
-      rootBundle.loadString('assets/editor.md').then((value) {
-        controller.text = value;
-        refresh();
-      });
-    }
+    controller = TextEditingController(text: widget.initialData);
     super.initState();
   }
 
@@ -109,6 +118,14 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
       children: <Widget>[
         Expanded(child: buildEditText()),
         Expanded(
+            child: Container(
+          margin: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+            ),
+          ),
           child: MarkdownWidget(
             data: controller.text,
             config: MarkdownConfig.defaultConfig.copy(configs: [
@@ -121,23 +138,22 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
               inlineSyntaxList: [LatexSyntax()],
               textGenerator: (node, config, visitor) =>
                   CustomTextNode(node.textContent, config, visitor),
-              richTextBuilder: (span) => Text.rich(span, textScaleFactor: 1),
+              richTextBuilder: (span) =>
+                  Text.rich(span, textScaler: const TextScaler.linear(1)),
             ),
           ),
-        ),
+        )),
       ],
     );
   }
 
   Widget buildEditText() {
     return Container(
-      margin: const EdgeInsets.all(20),
+      margin: const EdgeInsets.all(5),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(30)),
         border: Border.all(
           color: Colors.black,
-          width: 3,
         ),
       ),
       child: TextFormField(
@@ -169,12 +185,16 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
   }
 }
 
-Future<String> navigateToEditMarkdownPage(
-    BuildContext context, String text) async {
-  String modifiedText = await Navigator.push(
+Future<String?> navigateToEditMarkdownPage(
+    BuildContext context, String text, bool saveAble, bool confirm) async {
+  String? modifiedText = await Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => EditMarkDownWrappedPage(initialData: text),
+      builder: (context) => EditMarkDownWrappedPage(
+        initialData: text,
+        saveAble: saveAble,
+        confirm: confirm,
+      ),
     ),
   );
   return modifiedText;

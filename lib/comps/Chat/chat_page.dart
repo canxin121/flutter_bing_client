@@ -1,9 +1,9 @@
 // ignore_for_file: dead_code
-
 import 'package:bubble/bubble.dart';
 import 'package:flutter_bing_client/comps/Markdown/code_wrapper.dart';
+import 'package:flutter_bing_client/comps/Markdown/custom_node.dart';
 import 'package:flutter_bing_client/comps/Markdown/edit_markdown_page.dart';
-import 'package:flutter_bing_client/comps/largeTextEditor/large_text_editor.dart';
+import 'package:flutter_bing_client/comps/Markdown/latex.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +134,7 @@ class _ChatPageState extends State<ChatPage> {
                       fetchChatMsgs(true);
                     }
                   });
-                }else{
+                } else {
                   fetchChatMsgs(true);
                 }
               },
@@ -211,9 +211,7 @@ class _ChatPageState extends State<ChatPage> {
                   onPressed: () {
                     var text = message2String(message);
                     if (text != null) {
-                      navigateToEditMarkdownPage(context, text);
-                      // navigateToLargeTextEditor(context, text, false);
-                      // _showFullscreenDialog(text, context);
+                      navigateToEditMarkdownPage(context, text, false, false);
                     } else {
                       showErrorSnackBar("该消息类型不支持全屏查看", context);
                     }
@@ -264,12 +262,21 @@ class _ChatPageState extends State<ChatPage> {
     Widget child = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0), // 添加左右边距
       child: MarkdownBlock(
-          data: message.text,
-          config: config.copy(configs: [
-            isDark
-                ? PreConfig.darkConfig.copy(wrapper: codeWrapper)
-                : const PreConfig().copy(wrapper: codeWrapper)
-          ])),
+        data: message.text,
+        config: config.copy(configs: [
+          isDark
+              ? PreConfig.darkConfig.copy(wrapper: codeWrapper)
+              : const PreConfig().copy(wrapper: codeWrapper)
+        ]),
+        generator: MarkdownGenerator(
+          generators: [latexGenerator],
+          inlineSyntaxList: [LatexSyntax()],
+          textGenerator: (node, config, visitor) =>
+              CustomTextNode(node.textContent, config, visitor),
+          richTextBuilder: (span) =>
+              Text.rich(span, textScaler: const TextScaler.linear(1)),
+        ),
+      ),
     );
     return child;
   }
@@ -317,20 +324,8 @@ class CustomTextFieldState extends State<CustomTextField> {
                 IconButton(
                   icon: const Icon(Icons.fullscreen),
                   onPressed: () {
-                    navigateToEditMarkdownPage(context, _controller.text);
-
-                    // navigateToLargeTextEditor(context, _controller.text, true)
-                    //     .then((String? outText) {
-                    //   if (outText != null) {
-                    //     setState(() {
-                    //       _controller.text = outText;
-                    //     });
-                    //   }
-                    // });
-                    // _showFullscreenDialog(_controller.text, context)
-                    //     .then((value) => setState(() {
-                    //           _controller.text = value;
-                    //         }));
+                    navigateToEditMarkdownPage(
+                        context, _controller.text, true, true);
                   },
                 ),
                 Stack(
