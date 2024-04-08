@@ -325,7 +325,12 @@ class CustomTextFieldState extends State<CustomTextField> {
                   icon: const Icon(Icons.fullscreen),
                   onPressed: () {
                     navigateToEditMarkdownPage(
-                        context, _controller.text, true, true);
+                            context, _controller.text, true, true)
+                        .then((value) {
+                      if (value != null) {
+                        _controller.text = value;
+                      }
+                    });
                   },
                 ),
                 Stack(

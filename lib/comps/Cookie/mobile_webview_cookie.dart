@@ -42,7 +42,7 @@ class WebViewExampleState extends State<WebViewExample> {
             await Future.delayed(const Duration(microseconds: 500));
             var cookie = await _controller
                 .runJavaScriptReturningResult('document.cookie');
-            _cookie = cookie.toString();
+            _cookie = processCookie(cookie.toString());
           }
           if (mounted) {
             Navigator.pop(context, _cookie);
@@ -62,4 +62,20 @@ class WebViewExampleState extends State<WebViewExample> {
       body: WebViewWidget(controller: _controller),
     );
   }
+}
+
+String processCookie(String cookie) {
+  while (cookie.startsWith('"')) {
+    cookie = cookie.substring(1);
+  }
+  while (cookie.startsWith("'")) {
+    cookie = cookie.substring(1);
+  }
+  while (cookie.endsWith('"')) {
+    cookie = cookie.substring(0, cookie.length - 1);
+  }
+  while (cookie.endsWith("'")) {
+    cookie = cookie.substring(0, cookie.length - 1);
+  }
+  return cookie;
 }

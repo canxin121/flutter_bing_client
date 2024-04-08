@@ -767,15 +767,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.2"
-  re_editor:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "82c3cdbbc85e8170c4f98274fa9210876be35577"
-      url: "https://github.com/canxin121/re-editor.git"
-    source: git
-    version: "0.1.0"
   re_highlight:
     dependency: "direct main"
     description:

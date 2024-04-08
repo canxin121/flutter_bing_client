@@ -32,31 +32,42 @@ class EditMarkDownWrappedPageState extends State<EditMarkDownWrappedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (widget.confirm) {
-                showConfirmDialog(context, "确定要返回而不保存本次编辑后变化的内容吗?")
-                    .then((value) {
-                  if (value) {
-                    Navigator.pop(context, null);
-                  }
-                });
-              } else {
-                Navigator.pop(context, null);
-              }
-            }),
-        actions: [
-          if (widget.saveAble)
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () => Navigator.pop(context, controller.text),
-            ),
-        ],
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: () async {
+        if (widget.confirm) {
+          final shouldPop =
+              await showConfirmDialog(context, "确定要返回而不保存本次编辑后变化的内容吗?");
+          return shouldPop;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                if (widget.confirm) {
+                  showConfirmDialog(context, "确定要返回而不保存本次编辑后变化的内容吗?")
+                      .then((value) {
+                    if (value) {
+                      Navigator.pop(context, null);
+                    }
+                  });
+                } else {
+                  Navigator.pop(context, null);
+                }
+              }),
+          actions: [
+            if (widget.saveAble)
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () => Navigator.pop(context, controller.text),
+              ),
+          ],
+        ),
+        body: EditMarkdownPage(initialData: widget.initialData),
       ),
-      body: EditMarkdownPage(initialData: widget.initialData),
     );
   }
 }

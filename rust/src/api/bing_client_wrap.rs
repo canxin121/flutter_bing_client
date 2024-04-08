@@ -224,6 +224,7 @@ pub async fn ask_stream_plain(
                     }
                 }
             }
+            let _ = STOP_SIGNALS.remove(&chat.conversation_id);
         } else {
             return Err(anyhow::anyhow!("Bing Client is not inited"));
         }
