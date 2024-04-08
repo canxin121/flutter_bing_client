@@ -117,8 +117,9 @@ checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
 
 [[package]]
 name = "bing_client"
-version = "0.1.0"
-source = "git+https://github.com/canxin121/bing_client#ae241361d28b8ec43a8eba06b4d52cb71ba14967"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d480b231b8dab8515475881ba6f7efd743a737c6ac8a6975164ea37a9cc9d68"
 dependencies = [
  "anyhow",
  "base64 0.22.0",

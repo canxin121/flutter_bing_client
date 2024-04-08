@@ -1,7 +1,9 @@
-name: "BUILD"
+name: "Release"
 on:
   workflow_dispatch:
-    
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
 jobs:
   build_on_macos:
     runs-on: macos-latest
@@ -42,6 +44,14 @@ jobs:
           path: BingCopilot.ipa
           compression-level: 9
 
+      - name: Release Ios
+        uses: softprops/action-gh-release@v1
+        with:
+          files: BingCopilot.ipa
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag_name }}
+          token: ${{ secrets.RELEASE_TOKEN }}
+
       - name: Upload Macos app
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +61,14 @@ jobs:
       - name: Package Executable
         run: zip -r "../../../../../build/app/BingCopilot-macos-release-unknown.zip" *
         working-directory: build/macos/Build/Products/Release/*.app
+
+      - name: Release Macos
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/BingCopilot-macos-release-unknown.zip
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag_name }}
+          token: ${{ secrets.RELEASE_TOKEN }}
 
   build_on_linux:
     runs-on: ubuntu-latest
@@ -98,6 +116,14 @@ jobs:
           name: BingCopilot-linux-release-amd64
           path: build/app/BingCopilot-linux-release-amd64.zip
 
+      - name: Release Linux
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/BingCopilot-linux-release-amd64.zip
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag_name }}
+          token: ${{ secrets.RELEASE_TOKEN }}
+
       - name: Upload APK1
         uses: actions/upload-artifact@v4
         with:
@@ -124,6 +150,17 @@ jobs:
           mv build/app/outputs/apk/release/app-arm64-v8a-release.apk build/app/outputs/apk/release/BingCopilot-arm64-v8a-release.apk
           mv build/app/outputs/apk/release/app-armeabi-v7a-release.apk build/app/outputs/apk/release/BingCopilot-armeabi-v7a-release.apk
           mv build/app/outputs/apk/release/app-x86_64-release.apk build/app/outputs/apk/release/BingCopilot-x86_64-release.apk
+
+      - name: Release Apks
+        uses: softprops/action-gh-release@v1
+        with:
+          files: >
+            build/app/outputs/flutter-apk/BingCopilot-arm64-v8a-release.apk,
+            build/app/outputs/flutter-apk/BingCopilot-armeabi-v7a-release.apk,
+            build/app/outputs/flutter-apk/BingCopilot-x86_64-release.apk
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag_name }}
+          token: ${{ secrets.RELEASE_TOKEN }}
 
   build_on_windows:
     runs-on: windows-latest
@@ -152,3 +189,11 @@ jobs:
         with:
           name: BingCopilot-release-amd64
           path: build/app/BingCopilot-release-amd64.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/app/BingCopilot-release-amd64.zip
+          prerelease: false
+          tag_name: ${{ github.event.inputs.tag_name }}
+          token: ${{ secrets.RELEASE_TOKEN }}
