@@ -22,3 +22,6 @@ This app does almost everything the web version of bing copilot does!
 3. You can add multiple text attachments (which will be converted to text), and one image attachment (only one will work).
 4. Long press the plus button to cancel all attachments.
 5. Now you can't refresh chat messages during reply (TODO)
+
+#### licence
+Apache-2.0 Or MIT

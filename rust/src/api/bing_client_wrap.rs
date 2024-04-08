@@ -1,3 +1,5 @@
+// Carefullly use getmut of DashMap AND write of Rwlock.
+
 use std::sync::Arc;
 
 use crate::frb_generated::StreamSink;
@@ -11,7 +13,7 @@ use tokio::{
     sync::RwLock,
 };
 
-use tracing::{error, info};
+use tracing::error;
 
 use super::{
     bing_client_types::{DisplayConfig, WrappedChat, WrappedMsg},
@@ -51,6 +53,7 @@ pub async fn display_global_state() -> DisplayConfig {
     }
 }
 
+// this function write client
 #[flutter_rust_bridge::frb]
 pub async fn try_load_client() -> Result<(), anyhow::Error> {
     let root_path = {
@@ -58,7 +61,6 @@ pub async fn try_load_client() -> Result<(), anyhow::Error> {
         root_path.clone()
     };
     let file_path = root_path + "/client.json";
-    info!("Trying to load bing client from: {}", file_path);
     let client_json = fs::read_to_string(file_path).await?;
     let client = serde_json::from_str::<BingClient>(&client_json)?;
     let mut global_client = BING_CLIENT.write().await;
@@ -66,21 +68,19 @@ pub async fn try_load_client() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+// this function write client
 #[flutter_rust_bridge::frb]
 pub async fn recreate_client_save(cookie_str: String) -> Result<(), anyhow::Error> {
-    info!("Trying to recreate bing client");
     let client = BingClient::build(&Cookie::HeadStr(cookie_str.clone())).await?;
     let client_json = serde_json::to_string(&client)?;
     let mut global_client = BING_CLIENT.write().await;
     (*global_client) = Some(client);
-
     let root_path = {
         let root_path = ROOT_PATH.read().await;
         root_path.clone()
     };
 
     let path = &(root_path + "/client.json");
-    info!("Will write to {path}");
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -95,15 +95,12 @@ pub async fn get_update_chat_list() -> Result<Vec<WrappedChat>, anyhow::Error> {
     let bing_client = BING_CLIENT.read().await;
     if let Some(client) = bing_client.as_ref() {
         let chats = client.get_chat_list().await?;
-        let _ = chats.iter().for_each(|chat| {
-            let _ = CHAT_LIST.insert(chat.conversation_id.clone(), chat.clone());
-        });
-        Ok(chats
-            .into_iter()
+        let wrapped_chats = chats
+            .iter()
             .map(|chat| WrappedChat {
-                conversation_id: chat.conversation_id,
-                chat_name: chat.chat_name.unwrap_or("No Title".to_string()),
-                tone: chat.tone.unwrap_or("Unknown Tone".to_string()),
+                conversation_id: chat.conversation_id.clone(),
+                chat_name: chat.chat_name.clone().unwrap_or("No Title".to_string()),
+                tone: chat.tone.clone().unwrap_or("Unknown Tone".to_string()),
                 update_time_local: gen_time_local(chat.update_time_utc),
                 plugins: chat
                     .plugins
@@ -111,7 +108,14 @@ pub async fn get_update_chat_list() -> Result<Vec<WrappedChat>, anyhow::Error> {
                     .map(|plugin| plugin.get_name())
                     .collect::<Vec<String>>(),
             })
-            .collect::<Vec<WrappedChat>>())
+            .collect::<Vec<WrappedChat>>();
+        tokio::spawn(async move {
+            for chat in chats.iter() {
+                let chat_clone = chat.clone().await;
+                let _ = CHAT_LIST.insert(chat.conversation_id.clone(), chat_clone);
+            }
+        });
+        Ok(wrapped_chats)
     } else {
         Err(anyhow::anyhow!("Bing Client is not inited"))
     }
@@ -119,11 +123,11 @@ pub async fn get_update_chat_list() -> Result<Vec<WrappedChat>, anyhow::Error> {
 
 #[flutter_rust_bridge::frb]
 pub async fn get_chat_msgs(id: String) -> Result<Vec<WrappedMsg>, anyhow::Error> {
-    if let Some(mut chat) = CHAT_LIST.get_mut(&id) {
+    if let Some(chat) = CHAT_LIST.get(&id) {
         let bing_client = BING_CLIENT.read().await;
         if let Some(client) = bing_client.as_ref() {
             Ok(client
-                .get_chat_messages(&mut chat)
+                .get_chat_messages(&chat)
                 .await?
                 .iter()
                 .map(|msg| WrappedMsg {
@@ -132,7 +136,6 @@ pub async fn get_chat_msgs(id: String) -> Result<Vec<WrappedMsg>, anyhow::Error>
                 })
                 .collect::<Vec<WrappedMsg>>())
         } else {
-            info!("In get_chat_msgs");
             display_global_state().await;
             return Err(anyhow::anyhow!("Bing Client is not inited"));
         }
@@ -147,8 +150,9 @@ pub async fn create_chat() -> Result<String, anyhow::Error> {
     let bing_client = BING_CLIENT.read().await;
     if let Some(client) = bing_client.as_ref() {
         let new_chat = client.create_chat().await?;
-        CHAT_LIST.insert(new_chat.conversation_id.clone(), new_chat.clone());
-        Ok(new_chat.conversation_id)
+        let id = new_chat.conversation_id.clone();
+        CHAT_LIST.insert(new_chat.conversation_id.clone(), new_chat);
+        Ok(id)
     } else {
         Err(anyhow::anyhow!("Bing Client is not inited"))
     }
@@ -156,10 +160,10 @@ pub async fn create_chat() -> Result<String, anyhow::Error> {
 
 #[flutter_rust_bridge::frb]
 pub async fn rename_chat(id: String, new_name: String) -> Result<(), anyhow::Error> {
-    if let Some(mut chat) = CHAT_LIST.get_mut(&id) {
+    if let Some(chat) = CHAT_LIST.get(&id) {
         let bing_client = BING_CLIENT.read().await;
         if let Some(client) = bing_client.as_ref() {
-            client.rename_chat(&mut chat, new_name).await?;
+            client.rename_chat(&chat, new_name).await?;
         } else {
             return Err(anyhow::anyhow!("Bing Client is not inited"));
         }
@@ -169,10 +173,10 @@ pub async fn rename_chat(id: String, new_name: String) -> Result<(), anyhow::Err
 
 #[flutter_rust_bridge::frb]
 pub async fn delete_chat(id: String) -> Result<(), anyhow::Error> {
-    if let Some(mut chat) = CHAT_LIST.get_mut(&id) {
+    if let Some(chat) = CHAT_LIST.get(&id) {
         let bing_client = BING_CLIENT.read().await;
         if let Some(client) = bing_client.as_ref() {
-            client.delete_chat(&mut chat).await?;
+            client.delete_chat(&chat).await?;
         } else {
             return Err(anyhow::anyhow!("Bing Client is not inited"));
         }
@@ -180,14 +184,15 @@ pub async fn delete_chat(id: String) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-#[flutter_rust_bridge::frb]
 pub async fn ask_stream_plain(
     chat: WrappedChat,
     text_msg: String,
     image_path: Option<String>,
     sink: StreamSink<String>,
 ) -> Result<(), anyhow::Error> {
-    if let Some(mut _chat) = CHAT_LIST.get_mut(&chat.conversation_id) {
+    if let Some(_chat) = CHAT_LIST.get(&chat.conversation_id) {
+        // Clone one，after edit, insert it back.
+        let id = chat.conversation_id;
         let bing_client = BING_CLIENT.read().await;
         if let Some(client) = bing_client.as_ref() {
             let user_input = UserInput::build(
@@ -209,22 +214,23 @@ pub async fn ask_stream_plain(
             )
             .await
             .unwrap();
-            let (mut stream, stop_fn) = client
-                .ask_stream_plain(&mut _chat, user_input)
-                .await
-                .unwrap();
+            {
+                let (mut stream, stop_fn) = client
+                    .ask_stream_plain(&_chat, user_input)
+                    .await
+                    .unwrap();
 
-            STOP_SIGNALS.insert(chat.conversation_id.clone(), Box::new(stop_fn));
-
-            while let GeneratorState::Yielded(data) = stream.async_resume().await {
-                match sink.add(data) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("{e}");
+                STOP_SIGNALS.insert(id.clone(), Box::new(stop_fn));
+                while let GeneratorState::Yielded(data) = stream.async_resume().await {
+                    match sink.add(data) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            error!("{e}");
+                        }
                     }
                 }
             }
-            let _ = STOP_SIGNALS.remove(&chat.conversation_id);
+            let _ = STOP_SIGNALS.remove(&id);
         } else {
             return Err(anyhow::anyhow!("Bing Client is not inited"));
         }

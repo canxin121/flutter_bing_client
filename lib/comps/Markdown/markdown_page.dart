@@ -99,7 +99,10 @@ class MarkdownPageState extends State<MarkdownPage> {
           inlineSyntaxList: [LatexSyntax()],
           textGenerator: (node, config, visitor) =>
               CustomTextNode(node.textContent, config, visitor),
-          richTextBuilder: (span) => Text.rich(span, textScaleFactor: 1),
+          richTextBuilder: (span) => Text.rich(
+            span,
+            textScaler: const TextScaler.linear(1),
+          ),
         ),
       ),
     );

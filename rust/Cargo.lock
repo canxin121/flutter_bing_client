@@ -118,7 +118,7 @@ checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
 [[package]]
 name = "bing_client"
 version = "0.1.0"
-source = "git+https://github.com/canxin121/bing_client#cc3ec801814397c8c7f41345c469575486d8a8fb"
+source = "git+https://github.com/canxin121/bing_client#ae241361d28b8ec43a8eba06b4d52cb71ba14967"
 dependencies = [
  "anyhow",
  "base64 0.22.0",
@@ -469,6 +469,7 @@ dependencies = [
  "futures",
  "js-sys",
  "lazy_static",
+ "log",
  "oslog",
  "threadpool",
  "tokio",
@@ -629,9 +630,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a06fddc2749e0528d2813f95e050e87e52c8cbbae56223b9babf73b3e53b0cc6"
+checksum = "94b22e06ecb0110981051723910cbf0b5f5e09a2062dd7663334ee79a9d1286c"
 dependencies = [
  "cfg-if",
  "libc",

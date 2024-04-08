@@ -50,6 +50,7 @@ class SettingPageState extends State<SettingPage> {
               icon: const Icon(Icons.refresh),
               onPressed: () {
                 fetchDisplayConfig();
+                showSuccessSnackBar("成功刷新客户端状态信息", context);
               },
             ),
             initiallyExpanded:

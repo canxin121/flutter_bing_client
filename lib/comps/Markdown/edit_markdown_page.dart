@@ -66,30 +66,29 @@ class EditMarkDownWrappedPageState extends State<EditMarkDownWrappedPage> {
               ),
           ],
         ),
-        body: EditMarkdownPage(initialData: widget.initialData),
+        body: EditMarkdownPage(
+          controller: controller,
+        ),
       ),
     );
   }
 }
 
 class EditMarkdownPage extends StatefulWidget {
-  final String initialData;
-
-  const EditMarkdownPage({super.key, this.initialData = ''});
+  final TextEditingController controller;
+  const EditMarkdownPage({super.key, required this.controller});
 
   @override
   EditMarkdownPageState createState() => EditMarkdownPageState();
 }
 
 class EditMarkdownPageState extends State<EditMarkdownPage> {
-  late TextEditingController controller;
   bool isMobileDisplaying = false;
 
   bool get isMobile => PlatformDetector.isAllMobile;
 
   @override
   void initState() {
-    controller = TextEditingController(text: widget.initialData);
     super.initState();
   }
 
@@ -114,7 +113,9 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
   }
 
   Widget buildDisplay() {
-    if (isMobileDisplaying) return MarkdownPage(markdownData: controller.text);
+    if (isMobileDisplaying) {
+      return MarkdownPage(markdownData: widget.controller.text);
+    }
     return buildEditor();
   }
 
@@ -138,7 +139,7 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
             ),
           ),
           child: MarkdownWidget(
-            data: controller.text,
+            data: widget.controller.text,
             config: MarkdownConfig.defaultConfig.copy(configs: [
               const PreConfig().copy(
                   wrapper: (child, text, language) =>
@@ -171,7 +172,7 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
         expands: true,
         maxLines: null,
         textInputAction: TextInputAction.newline,
-        controller: controller,
+        controller: widget.controller,
         onChanged: (text) {
           refresh();
         },
@@ -192,7 +193,7 @@ class EditMarkdownPageState extends State<EditMarkdownPage> {
   @override
   void dispose() {
     super.dispose();
-    controller.dispose();
+    widget.controller.dispose();
   }
 }
 
