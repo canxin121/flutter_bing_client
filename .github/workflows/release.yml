@@ -32,7 +32,7 @@ jobs:
           mkdir -p Payload
           mv ./build/ios/iphoneos/Runner.app Payload
           zip -r -y Payload.zip Payload/Runner.app
-          mv Payload.zip BingCopilot.ipa
+          mv Payload.zip BingCopilot-ios-release-unknown.ipa
 
       - name: Flutter build macos
         run: flutter build macos --release --verbose
@@ -40,14 +40,14 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: BingCopilot.ipa
-          path: BingCopilot.ipa
+          name: BingCopilot-ios-release-unknown.ipa
+          path: BingCopilot-ios-release-unknown.ipa
           compression-level: 9
 
       - name: Release Ios
         uses: softprops/action-gh-release@v1
         with:
-          files: BingCopilot.ipa
+          files: BingCopilot-ios-release-unknown.ipa
           prerelease: false
           tag_name: ${{ github.event.inputs.tag_name }}
           token: ${{ secrets.RELEASE_TOKEN }}
@@ -182,19 +182,19 @@ jobs:
         run: flutter build windows --release --verbose
 
       - name: Package Executable
-        run: 7z a -r -sse "..\..\..\..\..\build\app\BingCopilot-release-amd64.zip" *
+        run: 7z a -r -sse "..\..\..\..\..\build\app\BingCopilot-win-release-amd64.zip" *
         working-directory: build\windows\x64\runner\Release
 
       - name: Upload files
         uses: actions/upload-artifact@v4
         with:
           name: BingCopilot-release-amd64
-          path: build/app/BingCopilot-release-amd64.zip
+          path: build/app/BingCopilot-win-release-amd64.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/app/BingCopilot-release-amd64.zip
+          files: build/app/BingCopilot-win-release-amd64.zip
           prerelease: false
           tag_name: ${{ github.event.inputs.tag_name }}
           token: ${{ secrets.RELEASE_TOKEN }}
