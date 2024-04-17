@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   rust_lib_flutter_bing_client:
     path: rust_builder
-  flutter_rust_bridge: 2.0.0-dev.30
+  flutter_rust_bridge: 2.0.0-dev.32
   flutter_chat_ui: ^1.6.12
   flutter_chat_types: ^3.6.2
   bubble: ^1.2.1
