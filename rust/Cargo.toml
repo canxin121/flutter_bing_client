@@ -7,8 +7,11 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
+uuid = { version = "1.8.0", features = ["v4"] }
 anyhow = "1.0.81"
-bing_client = { git = "https://github.com/canxin121/bing_client" }
+bing_client = { git = "https://github.com/canxin121/bing_client", features = [
+    "allow-invalid-tls",
+] }
 dashmap = { version = "5.5.3", features = ["serde"] }
 flutter_rust_bridge = { version = "=2.0.0-dev.32", features = [
     "log",
@@ -23,4 +26,3 @@ time = { version = "0.3.34", features = ["local-offset"] }
 tokio = { version = "1.37.0", features = ["full"] }
 tracing = { version = "0.1.40", features = ["log"] }
 tracing-subscriber = { version = "0.3.18", features = ["local-time"] }
-uuid = { version = "1.8.0", features = ["v4"] }
