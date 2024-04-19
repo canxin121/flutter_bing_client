@@ -34,7 +34,8 @@ Future<String> getCookie() async {
       ..launch(url)
       ..addOnUrlRequestCallback((url) async {
         if (url.startsWith("https://account.microsoft.com")) {
-          currentWebview?.launch("https://www.bing.com/");
+          currentWebview?.launch(
+              "https://www.bing.com/chat?q=Microsoft+Copilot&FORM=hpcodx");
           String cookie = "";
           while (!cookie.contains("_U=")) {
             await Future.delayed(const Duration(microseconds: 500));

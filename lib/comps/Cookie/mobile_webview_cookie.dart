@@ -34,7 +34,8 @@ class WebViewExampleState extends State<WebViewExample> {
     await _controller.setNavigationDelegate(NavigationDelegate(
       onPageFinished: (url) async {
         if (url.startsWith("https://account.microsoft.com")) {
-          await _controller.loadRequest(Uri.parse("https://www.bing.com/"));
+          await _controller.loadRequest(Uri.parse(
+              "https://www.bing.com/chat?q=Microsoft+Copilot&FORM=hpcodx"));
           if (mounted) {
             showInfoSnackBar("如果显示登录,请点击使用个人账户登录", context);
           }
