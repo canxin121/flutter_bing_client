@@ -111,8 +111,8 @@ checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
 
 [[package]]
 name = "bing_client"
-version = "0.1.1"
-source = "git+https://github.com/canxin121/bing_client#816e3dfcc49188d3434f7f8cffb585c8894c3ea1"
+version = "0.1.2"
+source = "git+https://github.com/canxin121/bing_client#f1cbf211b5aa4e3f337b2518e7e1f1d0c5ca4d46"
 dependencies = [
  "anyhow",
  "base64",
